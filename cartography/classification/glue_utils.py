@@ -94,7 +94,11 @@ def adapted_glue_convert_examples_to_features(
             logger.info("Using output mode %s for task %s" % (output_mode, task))
 
     label_map = {label: i for i, label in enumerate(label_list)}
-
+    print("Label list: ")
+    print(label_list)
+    print("Label map is: ")
+    print(label_map)
+    quit(1)
     features = []
     for (ex_index, example) in enumerate(examples):
         len_examples = 0

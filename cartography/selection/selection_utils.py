@@ -58,6 +58,8 @@ def read_training_dynamics(model_dir: os.path,
     with open(epoch_file, "r") as infile:
       for line in infile:
         record = json.loads(line.strip())
+        print("record is")
+        print(record)
         guid = record[id_field] if not strip_last else record[id_field][:-1]
         if guid not in train_dynamics:
           assert epoch_num == 0

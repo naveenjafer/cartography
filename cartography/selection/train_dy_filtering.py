@@ -24,6 +24,7 @@ from typing import List
 from cartography.data_utils import read_data, read_jsonl, copy_dev_test
 from cartography.selection.selection_utils import read_training_dynamics
 
+pd.set_option('max_columns', None)
 # TODO(SS): Named tuple for tasks and filtering methods.
 
 logging.basicConfig(
@@ -207,9 +208,13 @@ def write_filtered_data(args, train_dy_metrics):
                   to_dir=outdir)
 
     num_samples = int(fraction * len(train_numeric))
+    print("Train numeric is ", list(train_numeric.keys())[0:100])
     with open(os.path.join(outdir, f"train.tsv"), "w") as outfile:
       outfile.write(header + "\n")
       selected = sorted_scores.head(n=num_samples+1)
+      print("Selected length is")
+      #print(selected[0:5])
+      #print(len(selected))
       if args.both_ends:
         hardest = sorted_scores.head(n=int(num_samples * 0.7))
         easiest = sorted_scores.tail(n=num_samples - hardest.shape[0])
@@ -224,13 +229,21 @@ def write_filtered_data(args, train_dy_metrics):
         selection_iterator.set_description(
           f"{args.metric} = {selected.iloc[idx][args.metric]:.4f}")
 
-        selected_id = selected.iloc[idx]["guid"]
+        selected_id = selected.iloc[idx]["index"]
+        if args.task_name in ["QNLI"]:
+          selected_id = str(int(selected_id))
         if args.task_name in ["SNLI", "MNLI"]:
           selected_id = int(selected_id)
         elif args.task_name == "WINOGRANDE":
           selected_id = str(int(selected_id))
-        record = train_numeric[selected_id]
-        outfile.write(record + "\n")
+        print("The train numeric keys")
+        print(len(train_numeric.keys()))
+        #print(train_numeric.keys()[0:100])
+        try:
+          record = train_numeric[selected_id]
+          outfile.write(record + "\n")
+        except:
+          print("Missed a record")
 
     logger.info(f"Wrote {num_samples} samples to {outdir}.")
 
@@ -393,9 +406,14 @@ if __name__ == "__main__":
 
   args = parser.parse_args()
 
-  training_dynamics = read_training_dynamics(args.model_dir,
+  '''training_dynamics = read_training_dynamics(args.model_dir,
                                              strip_last=True if args.task_name in ["QNLI"] else False,
+                                             burn_out=args.burn_out if args.burn_out < 100 else None)'''
+
+  training_dynamics = read_training_dynamics(args.model_dir,
+                                             False,
                                              burn_out=args.burn_out if args.burn_out < 100 else None)
+                                             
   total_epochs = len(list(training_dynamics.values())[0]["logits"])
   if args.burn_out > total_epochs:
     args.burn_out = total_epochs
