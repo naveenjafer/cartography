@@ -98,7 +98,6 @@ def adapted_glue_convert_examples_to_features(
     print(label_list)
     print("Label map is: ")
     print(label_map)
-    quit(1)
     features = []
     for (ex_index, example) in enumerate(examples):
         len_examples = 0
